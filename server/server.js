@@ -4,6 +4,22 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const fs = require("fs");
+const { MongoClient } = require("mongodb");
+require("dotenv").config();
+
+// Database
+const dbUri = `mongodb+srv://${process.env.DBUSER}:${process.env.DBPASS}@cluster0.jlwzq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+const dbClient = new MongoClient(dbUri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+dbClient.connect(err => {
+  if (err) {
+    throw err;
+  }
+  console.log("Connected to MongoDB");
+});
 
 // Use body parser
 app.use(bodyParser.json());
@@ -31,16 +47,32 @@ router.get("/api/get", (req, res) => {
     return;
   }
 
-  const db = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "../database/db.json")),
-  );
+  const connect = dbClient.db(word);
+  connect.listCollections().toArray(async function (err, names) {
+    if (err) {
+      console.error(err);
+      res.status(500).send(err);
+      return;
+    }
 
-  if (!db[word]) {
-    res.status(204).send("Unknown word");
-    return;
-  }
+    var data = {};
+    for (var i in names) {
+      const collection = connect.collection(names[i].name);
+      data[names[i].name] = await new Promise(resolve => {
+        collection.find({}).toArray(function (err, result) {
+          if (err) {
+            console.error(err);
+            res.status(500).send(err);
+            return;
+          }
 
-  res.status(200).json(db[word]);
+          resolve(result);
+        });
+      });
+    }
+
+    res.status(200).json(data);
+  });
 });
 
 // Post single word
@@ -76,19 +108,22 @@ router.get("/api/post", (req, res) => {
     db[word][ipa] = [];
   }
 
-  db[word][ipa].push({
-    time: Date.now(),
-    user,
-    ...(narrow ? { strict: true } : {}),
-    ...(note ? { note } : {}),
-  });
-
-  fs.writeFileSync(
-    path.join(__dirname, "../database/db.json"),
-    JSON.stringify(db, null, 2),
-  );
-
-  res.sendStatus(200);
+  const collection = dbClient.db(word).collection(ipa);
+  collection
+    .insertOne({
+      time: Date.now(),
+      user,
+      ...(narrow ? { strict: true } : {}),
+      ...(note ? { note } : {}),
+    })
+    .then(() => {
+      res.sendStatus(200);
+      console.log(200);
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send(err);
+    });
 });
 
 // Use router

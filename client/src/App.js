@@ -8,10 +8,11 @@ import SearchEntry from "./SearchEntry";
 export default class App extends Component {
   state = {
     msg: null,
-    searchWord: "cringe",
-    searchResult: null,
-    postIpa: null,
-    postSource: null,
+    loading: null,
+    word: "cringe",
+    search: null,
+    ipa: null,
+    source: null,
   };
 
   componentDidMount() {
@@ -24,36 +25,37 @@ export default class App extends Component {
   }
 
   get() {
-    console.log("get");
+    console.log("get:", this.state.word);
+    this.setState({ loading: true });
 
-    fetch(`./api/get?word=${this.state.searchWord}`)
-      .then(res => {
-        if (res.status === 200) {
-          return res.json();
-        }
-        this.setState({ searchResult: null });
-      })
-      .then(json => this.setState({ searchResult: json }))
+    if (!this.state.word) {
+      this.setState({ search: null, loading: false });
+      return;
+    }
+
+    fetch(`./api/get?word=${this.state.word}`)
+      .then(res => res.json())
+      .then(json => this.setState({ search: json, loading: false }))
       .catch(err => console.error(err));
   }
 
   post = () => {
-    console.log("post");
+    console.log("post:", this.state.word, this.state.ipa);
+    this.setState({ loading: true });
 
     fetch(
       "/api/post?" +
         $.param({
-          word: this.state.searchWord,
-          ipa: this.state.postIpa,
-          ...this.state.postSource,
+          word: this.state.word,
+          ipa: this.state.ipa,
+          ...this.state.source,
         }),
     )
-      .then(res => {
-        console.log(res);
+      .then(() => {
         $(".PostForm form")[0].reset();
         this.get();
-        this.setState({ postIpa: null });
-        this.setState({ postSource: null });
+        this.setState({ ipa: null });
+        this.setState({ source: null });
       })
       .catch(err => console.error(err));
 
@@ -73,12 +75,20 @@ export default class App extends Component {
         <div className="searchInput">
           <input
             type="text"
-            defaultValue={this.state.searchWord}
+            defaultValue={this.state.word}
             placeholder="Search word"
+            autoFocus
             onInput={event => {
-              this.setState({ searchWord: event.target.value }, this.get);
+              this.setState({ word: event.target.value });
+            }}
+            onKeyDown={event => {
+              if (event.key === "Enter") {
+                this.get();
+              }
             }}
           />
+
+          <button onClick={() => this.get()}>Search</button>
         </div>
 
         <PostForm
@@ -90,15 +100,14 @@ export default class App extends Component {
         <hr />
 
         <div className="searchList">
-          {!this.state.searchResult ? (
+          {this.state.loading ? (
+            <span className="loading">Loading...</span>
+          ) : !this.state.search ||
+            Object.keys(this.state.search).length < 1 ? (
             <span className="empty">No results</span>
           ) : (
-            Object.keys(this.state.searchResult).map((ipa, i) => (
-              <SearchEntry
-                key={i}
-                ipa={ipa}
-                source={this.state.searchResult[ipa]}
-              />
+            Object.keys(this.state.search).map((ipa, i) => (
+              <SearchEntry key={i} ipa={ipa} source={this.state.search[ipa]} />
             ))
           )}
         </div>

@@ -8,8 +8,11 @@ function formatTime(time) {
   ) : (
     <>
       <span>
-        {F.parseTime(Date.now() - time, undefined, unit => {
-          if (unit.size < 2) {
+        {F.parseTime(Date.now() - time, undefined, (unit, index, all) => {
+          if (unit.size < 2 || all.length - unit.size > 3) {
+            if (all.length < 2 || unit.size < 1) {
+              return "1m";
+            }
             return;
           }
 

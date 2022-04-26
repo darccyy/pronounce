@@ -19,7 +19,7 @@ export default function PostForm(props) {
             type="text"
             placeholder="IPA"
             required
-            onInput={event => props.setState({ postIpa: event.target.value })}
+            onInput={event => props.setState({ ipa: event.target.value })}
           />
           <label>IPA Transcription</label>
 
@@ -28,8 +28,8 @@ export default function PostForm(props) {
             placeholder=""
             onInput={event => {
               props.setState({
-                postSource: {
-                  ...props.state.postSource,
+                source: {
+                  ...props.state.source,
                   narrow: event.target.checked,
                 },
               });
@@ -44,8 +44,8 @@ export default function PostForm(props) {
             required
             onInput={event =>
               props.setState({
-                postSource: {
-                  ...props.state.postSource,
+                source: {
+                  ...props.state.source,
                   user: event.target.value || null,
                 },
               })
@@ -58,8 +58,8 @@ export default function PostForm(props) {
             required
             onInput={event =>
               props.setState({
-                postSource: {
-                  ...props.state.postSource,
+                source: {
+                  ...props.state.source,
                   dialect: event.target.value || null,
                 },
               })
@@ -71,8 +71,8 @@ export default function PostForm(props) {
             placeholder="Note (optional)"
             onInput={event =>
               props.setState({
-                postSource: {
-                  ...props.state.postSource,
+                source: {
+                  ...props.state.source,
                   note: event.target.value || null,
                 },
               })
@@ -83,24 +83,24 @@ export default function PostForm(props) {
         </form>
 
         <div className="postPreview">
-          {!props.state.postIpa ? (
+          {!props.state.ipa ? (
             ""
           ) : (
             <>
               <h2>
                 Preview:{" "}
                 <span className="invalid">
-                  {props.state.postIpa &&
-                  props.state.postSource?.user &&
-                  props.state.postSource?.dialect
+                  {props.state.ipa &&
+                  props.state.source?.user &&
+                  props.state.source?.dialect
                     ? ""
                     : "(Missing values)"}
                 </span>
               </h2>
               <SearchEntry
-                ipa={props.state.postIpa}
+                ipa={props.state.ipa}
                 source={[
-                  { ...props.state.postSource, time: Date.now() - 100000 },
+                  { ...props.state.source, time: Date.now() },
                 ]}
               />
             </>
