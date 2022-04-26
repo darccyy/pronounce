@@ -1,13 +1,21 @@
 import { Component } from "react";
-import F from "fortissimo";
+import $ from "jquery";
 
 import "./App.scss";
+import PostForm from "./PostForm";
+import SearchEntry from "./SearchEntry";
 
 export default class App extends Component {
-  state = { msg: null, searchWord: "bruh", searchResult: null };
+  state = {
+    msg: null,
+    searchWord: "cringe",
+    searchResult: null,
+    postIpa: null,
+    postSource: null,
+  };
 
   componentDidMount() {
-    this.getWord();
+    this.get();
 
     fetch("./api/test")
       .then(res => res.json())
@@ -15,8 +23,8 @@ export default class App extends Component {
       .catch(err => console.error(err));
   }
 
-  getWord() {
-    console.log("get:", this.state.searchWord);
+  get() {
+    console.log("get");
 
     fetch(`./api/get?word=${this.state.searchWord}`)
       .then(res => {
@@ -29,29 +37,33 @@ export default class App extends Component {
       .catch(err => console.error(err));
   }
 
-  formatTime(time) {
-    return !time ? (
-      "Unknown time"
-    ) : (
-      <>
-        <span>
-          {F.parseTime(Date.now() - time, undefined, unit => {
-            if (unit.size < 2) {
-              return;
-            }
+  post = () => {
+    console.log("post");
 
-            return Math.floor(unit.amount).toString() + unit.prefix;
-          })}
-        </span>{" "}
-        ago
-      </>
-    );
-  }
+    fetch(
+      "/api/post?" +
+        $.param({
+          word: this.state.searchWord,
+          ipa: this.state.postIpa,
+          ...this.state.postSource,
+        }),
+    )
+      .then(res => {
+        console.log(res);
+        $(".PostForm form")[0].reset();
+        this.get();
+        this.setState({ postIpa: null });
+        this.setState({ postSource: null });
+      })
+      .catch(err => console.error(err));
+
+    $(".PostForm > details").attr("open", false);
+  };
 
   render() {
     return (
       <div className="App">
-        <h1>Pronounce</h1>
+        <h1>How to Pronounce</h1>
 
         <p>
           Server test message:{" "}
@@ -64,78 +76,32 @@ export default class App extends Component {
             defaultValue={this.state.searchWord}
             placeholder="Search word"
             onInput={event => {
-              this.setState({ searchWord: event.target.value }, this.getWord);
+              this.setState({ searchWord: event.target.value }, this.get);
             }}
           />
-
-          {/* <button>Post</button> */}
         </div>
 
-        <ul className="searchList">
+        <PostForm
+          post={this.post}
+          state={this.state}
+          setState={value => this.setState(value)}
+        />
+
+        <hr />
+
+        <div className="searchList">
           {!this.state.searchResult ? (
             <span className="empty">No results</span>
           ) : (
-            Object.keys(this.state.searchResult).map((ipa, i) => {
-              if (!ipa) {
-                return;
-              }
-              var source = this.state.searchResult[ipa];
-              // If majority say narrow
-              var narrow =
-                source.reduce((acc, post) => {
-                  return acc + (post.narrow ? 1 : 0);
-                }, 0) /
-                  source.length >
-                0.5;
-
-              return (
-                <li key={i} className="entry">
-                  <span className={"ipa" + (narrow ? " narrow" : "")}>
-                    {ipa}
-                  </span>
-
-                  <ul className="source">
-                    {!source || source.length < 1 ? (
-                      <span className="empty">
-                        <i>No source</i>
-                      </span>
-                    ) : (
-                      source.map((post, j) => {
-                        return (
-                          <li key={j} className="post">
-                            <p className="commas">
-                              <i className="user">
-                                {post.user || "Unknown user"}
-                              </i>
-
-                              <b className="dialect">{post.dialect}</b>
-
-                              <span className="time">
-                                {this.formatTime(post.time)}
-                              </span>
-
-                              {post.narrow ? (
-                                <span className="narrow">
-                                  Narrow Transcription
-                                </span>
-                              ) : null}
-                            </p>
-
-                            {post.note ? (
-                              <blockquote className="note">
-                                {post.note}
-                              </blockquote>
-                            ) : null}
-                          </li>
-                        );
-                      })
-                    )}
-                  </ul>
-                </li>
-              );
-            })
+            Object.keys(this.state.searchResult).map((ipa, i) => (
+              <SearchEntry
+                key={i}
+                ipa={ipa}
+                source={this.state.searchResult[ipa]}
+              />
+            ))
           )}
-        </ul>
+        </div>
       </div>
     );
   }

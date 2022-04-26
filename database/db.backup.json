@@ -15,7 +15,9 @@
       }
     ],
     "braː": [],
-    "βrʌ": [{}],
+    "βrʌ": [
+      {}
+    ],
     "βɹʌ": [
       {
         "user": "person",
@@ -44,6 +46,30 @@
         "time": 1650945615648,
         "dialect": "en-au",
         "user": "bruhman"
+      }
+    ]
+  },
+  "undefined": {
+    "kring": [
+      {
+        "time": 1650949567720,
+        "user": "random"
+      },
+      {
+        "time": 1650949612407,
+        "user": "random"
+      },
+      {
+        "time": 1650949656013,
+        "user": "random"
+      },
+      {
+        "time": 1650949679242,
+        "user": "random"
+      },
+      {
+        "time": 1650949689071,
+        "user": "random"
       }
     ]
   }

@@ -27,16 +27,19 @@ router.get("/api/get", (req, res) => {
   console.log("get:", word);
 
   if (!word) {
-    res.status(400).send("`word` is not defined");
+    res.status(406).send("`word` is not defined");
+    return;
   }
 
   const db = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "./database.json")),
+    fs.readFileSync(path.join(__dirname, "../database/db.json")),
   );
 
   if (!db[word]) {
     res.status(204).send("Unknown word");
+    return;
   }
+
   res.status(200).json(db[word]);
 });
 
@@ -46,44 +49,46 @@ router.get("/api/post", (req, res) => {
   console.log("post:", word, dialect, ipa, user, note, narrow);
 
   if (!word) {
-    res.status(400).send("`word` is not defined");
+    res.status(406).send("`word` is not defined");
+    return;
   }
   if (!dialect) {
-    res.status(400).send("`dialect` is not defined");
+    res.status(406).send("`dialect` is not defined");
+    return;
   }
   if (!ipa) {
-    res.status(400).send("`ipa` is not defined");
+    res.status(406).send("`ipa` is not defined");
+    return;
   }
   if (!user) {
-    res.status(400).send("`user` is not defined");
+    res.status(406).send("`user` is not defined");
+    return;
   }
 
   const db = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "./database.json")),
+    fs.readFileSync(path.join(__dirname, "../database/db.json")),
   );
 
   if (!db[word]) {
     db[word] = {};
   }
-  if (!db[word][dialect]) {
-    db[word][dialect] = {};
-  }
-  if (!db[word][dialect][ipa]) {
-    db[word][dialect][ipa] = [];
+  if (!db[word][ipa]) {
+    db[word][ipa] = [];
   }
 
-  db[word][dialect][ipa].push({
+  db[word][ipa].push({
     time: Date.now(),
     user,
     ...(narrow ? { strict: true } : {}),
     ...(note ? { note } : {}),
   });
+
   fs.writeFileSync(
-    path.join(__dirname, "database.json"),
+    path.join(__dirname, "../database/db.json"),
     JSON.stringify(db, null, 2),
   );
 
-  res.status(200);
+  res.sendStatus(200);
 });
 
 // Use router

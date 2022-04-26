@@ -11,7 +11,7 @@
     "nodemon": "^2.0.15"
   },
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "nodemon server.js --ignore database",
     "start": "node server.js"
   }
 }
