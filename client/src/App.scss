@@ -7,3 +7,51 @@ body {
 .msg {
   color: #afa;
 }
+
+.searchList {
+  .entry {
+    .ipa {
+      font-size: 200%;
+
+      &::before,
+      &::after {
+        content: "/";
+      }
+
+      &.narrow {
+        font-weight: bold;
+
+        &::before {
+          content: "[";
+        }
+
+        &::after {
+          content: "]";
+        }
+      }
+    }
+
+    .source {
+      .post {
+        .commas {
+          * {
+            &:not(:last-child):not(:empty)::after {
+              content: ", ";
+              font-weight: initial;
+            }
+          }
+        }
+
+        .narrow {
+          font-weight: bold;
+        }
+
+        .note {
+          border-left: 4px solid white;
+          padding-left: 10px;
+          margin-left: 30px;
+        }
+      }
+    }
+  }
+}
